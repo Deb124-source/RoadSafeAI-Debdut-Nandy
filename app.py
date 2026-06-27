@@ -25,7 +25,7 @@ encoder_features = encoder.feature_names_in_
 
 
 
-# Page config
+# Page settings
 
 st.set_page_config(
     page_title="RoadSafe AI",
@@ -34,11 +34,12 @@ st.set_page_config(
 )
 
 
+
 st.title("🚦 RoadSafe AI")
 st.subheader("Traffic Accident Severity Prediction")
 
 st.write(
-    "Predict accident severity using XGBoost"
+    "Predict accident severity using XGBoost Machine Learning"
 )
 
 
@@ -46,12 +47,28 @@ st.divider()
 
 
 
-# Inputs
+# Input Layout
 
 col1, col2 = st.columns(2)
 
 
+
 with col1:
+
+
+    day = st.selectbox(
+        "Day of Week",
+        [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+        ]
+    )
+
 
     age = st.selectbox(
         "Age Band of Driver",
@@ -69,6 +86,17 @@ with col1:
         [
             "Male",
             "Female"
+        ]
+    )
+
+
+    education = st.selectbox(
+        "Educational Level",
+        [
+            "High school",
+            "Junior high school",
+            "Above high school",
+            "Unknown"
         ]
     )
 
@@ -95,8 +123,69 @@ with col1:
     )
 
 
+    owner = st.selectbox(
+        "Owner of Vehicle",
+        [
+            "Owner",
+            "Organization"
+        ]
+    )
+
+
 
 with col2:
+
+
+    area = st.selectbox(
+        "Accident Area",
+        [
+            "Residential areas",
+            "Office areas",
+            "Industrial areas",
+            "Market areas"
+        ]
+    )
+
+
+    road_alignment = st.selectbox(
+        "Road Alignment",
+        [
+            "Tangent road",
+            "Steep grade downward",
+            "Curve road"
+        ]
+    )
+
+
+    junction = st.selectbox(
+        "Type of Junction",
+        [
+            "No junction",
+            "Y Shape",
+            "Crossing",
+            "O Shape"
+        ]
+    )
+
+
+    road_surface = st.selectbox(
+        "Road Surface Type",
+        [
+            "Asphalt roads",
+            "Earth roads",
+            "Gravel roads"
+        ]
+    )
+
+
+    road_condition = st.selectbox(
+        "Road Surface Condition",
+        [
+            "Dry",
+            "Wet or damp",
+            "Snow"
+        ]
+    )
 
 
     weather = st.selectbox(
@@ -109,35 +198,34 @@ with col2:
     )
 
 
-    road = st.selectbox(
-        "Road Surface Condition",
-        [
-            "Dry",
-            "Wet",
-            "Snow"
-        ]
-    )
-
-
     light = st.selectbox(
         "Light Condition",
         [
             "Daylight",
-            "Darkness"
+            "Darkness - lights lit",
+            "Darkness - no lighting"
         ]
     )
 
 
-    cause = st.selectbox(
-        "Cause of Accident",
+    collision = st.selectbox(
+        "Type of Collision",
         [
-            "Speeding",
-            "Overtaking",
-            "Driving carelessly",
-            "Other"
+            "Vehicle with vehicle collision",
+            "Collision with roadside object",
+            "Collision with pedestrian"
         ]
     )
 
+
+    movement = st.selectbox(
+        "Vehicle Movement",
+        [
+            "Going straight",
+            "Overtaking",
+            "Changing lane"
+        ]
+    )
 
 
 st.divider()
@@ -147,64 +235,60 @@ st.divider()
 if st.button("Predict Severity"):
 
 
-    # Create dataframe with ALL encoder columns
+    # Create dataframe matching encoder
 
     input_data = pd.DataFrame(
         0,
         index=[0],
-        columns=encoder.feature_names_in_
+        columns=encoder_features
     )
 
 
-    # Fill available user inputs
-
-    input_data["Age_band_of_driver"] = age
-
-    input_data["Drivers_gender"] = gender
-
-    input_data["Driving_experience"] = experience
-
-    input_data["Type_of_vehicle"] = vehicle
-
-    input_data["Weather_conditions"] = weather
-
-    input_data["Road_surface_conditions"] = road
-
-    input_data["Light_conditions"] = light
-
-    input_data["Cause_of_accident"] = cause
+    values = {
 
 
+        "Day_of_week": day,
 
-    # Give default categorical values for remaining columns
+        "Age_band_of_driver": age,
 
-    defaults = {
+        "Drivers_gender": gender,
 
-        "Day_of_week":"Monday",
+        "Educational_level": education,
 
-        "Educational_level":"Unknown",
+        "Driving_experience": experience,
+
+        "Type_of_vehicle": vehicle,
+
+        "Owner_of_vehicle": owner,
+
+        "Area_accident_occured": area,
+
+        "Road_allignment": road_alignment,
+
+        "Types_of_Junction": junction,
+
+        "Road_surface_type": road_surface,
+
+        "Road_surface_conditions": road_condition,
+
+        "Weather_conditions": weather,
+
+        "Light_conditions": light,
+
+        "Type_of_collision": collision,
+
+        "Vehicle_movement": movement,
+
+
+        # defaults
 
         "Vehicle_driver_relation":"Owner",
-
-        "Owner_of_vehicle":"Owner",
 
         "Service_year_of_vehicle":"Unknown",
 
         "Defect_of_vehicle":"No defect",
 
-        "Area_accident_occured":"Other",
-
         "Lanes_or_Medians":"Two-way",
-
-        "Road_allignment":"Straight",
-
-        "Types_of_Junction":"No junction",
-
-        "Road_surface_type":"Asphalt",
-
-        "Type_of_collision":"Other",
-
-        "Vehicle_movement":"Going straight",
 
         "Casualty_class":"Driver",
 
@@ -216,13 +300,15 @@ if st.button("Predict Severity"):
 
         "Fitness_of_casuality":"Normal",
 
-        "Pedestrian_movement":"Not pedestrian"
+        "Pedestrian_movement":"Not pedestrian",
+
+        "Cause_of_accident":"Driving carelessly"
 
     }
 
 
 
-    for col,value in defaults.items():
+    for col,value in values.items():
 
         if col in input_data.columns:
 
@@ -232,26 +318,26 @@ if st.button("Predict Severity"):
 
     # Encode
 
-    encoded_data = encoder.transform(
+    encoded = encoder.transform(
         input_data
     )
 
 
-    encoded_data = pd.DataFrame(
-        encoded_data,
-        columns=encoder.get_feature_names_out(
-            encoder.feature_names_in_
-        )
+    encoded = pd.DataFrame(
+        encoded,
+        columns=encoder.get_feature_names_out()
     )
 
 
-    # Match XGBoost input
+    # Match XGBoost columns
 
-    final_input = encoded_data.reindex(
+    final_input = encoded.reindex(
         columns=features,
         fill_value=0
     )
 
+
+    # Prediction
 
     prediction = model.predict(
         final_input
@@ -264,5 +350,38 @@ if st.button("Predict Severity"):
 
 
     st.success(
-        f"Predicted Accident Severity: {result[0]}"
+        f"🚦 Predicted Accident Severity: {result[0]}"
     )
+
+
+
+    # Probability
+
+    if hasattr(model,"predict_proba"):
+
+        probability = model.predict_proba(
+            final_input
+        )[0]
+
+
+        st.subheader("Prediction Confidence")
+
+
+        prob_df = pd.DataFrame(
+            {
+                "Severity":
+                target_encoder.classes_,
+
+                "Probability":
+                probability*100
+            }
+        )
+
+
+        st.dataframe(
+            prob_df.style.format(
+                {
+                    "Probability":"{:.2f}%"
+                }
+            )
+        )
