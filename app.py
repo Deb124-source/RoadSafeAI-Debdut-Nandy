@@ -6,11 +6,11 @@ import pickle
 # Load model and encoder
 
 model = pickle.load(
-    open("accident_model.pkl", "rb")
+    open("accident_model (1).pkl", "rb")
 )
 
 encoder = pickle.load(
-    open("target_encoder.pkl", "rb")
+    open("target_encoder (1).pkl", "rb")
 )
 
 
