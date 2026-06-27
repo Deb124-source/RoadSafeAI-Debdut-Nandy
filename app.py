@@ -132,7 +132,16 @@ with col1:
     )
 
 
-
+    cause = st.selectbox(
+    "Cause of Accident",
+    [
+        "Driving carelessly",
+        "Speeding",
+        "Overtaking",
+        "No distancing",
+        "Other"
+    ]
+)
 with col2:
 
 
