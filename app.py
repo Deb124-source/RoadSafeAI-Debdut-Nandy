@@ -141,70 +141,79 @@ st.divider()
 
 if st.button("Predict Severity"):
 
-
-    # Create dataframe with same columns as training
+    # create dataframe with correct columns
     input_data = pd.DataFrame(
         columns=features
     )
 
-    # create one empty row
-    input_data.loc[0] = None
+
+    # add one row
+    input_data = pd.DataFrame(
+        [[0]*len(features)],
+        columns=features
+    )
 
 
     # Fill categorical values
 
-    if "Age_band_of_driver" in features:
-        input_data["Age_band_of_driver"] = age
+    categorical_values = {
 
+        "Age_band_of_driver": age,
 
-    if "Drivers_gender" in features:
-        input_data["Drivers_gender"] = gender
+        "Drivers_gender": gender,
 
+        "Driving_experience": experience,
 
-    if "Driving_experience" in features:
-        input_data["Driving_experience"] = experience
+        "Type_of_vehicle": vehicle,
 
+        "Weather_conditions": weather,
 
-    if "Type_of_vehicle" in features:
-        input_data["Type_of_vehicle"] = vehicle
+        "Road_surface_conditions": road,
 
+        "Light_conditions": light,
 
-    if "Weather_conditions" in features:
-        input_data["Weather_conditions"] = weather
-
-
-    if "Road_surface_conditions" in features:
-        input_data["Road_surface_conditions"] = road
-
-
-    if "Light_conditions" in features:
-        input_data["Light_conditions"] = light
-
-
-    if "Cause_of_accident" in features:
-        input_data["Cause_of_accident"] = cause
-
-
-
-    # Fill numerical columns if present
-
-    numeric_defaults = {
-
-        "Number_of_vehicles_involved":1,
-
-        "Number_of_casualties":1
+        "Cause_of_accident": cause
 
     }
 
 
-    for col,value in numeric_defaults.items():
+    for col, val in categorical_values.items():
 
         if col in input_data.columns:
-            input_data[col] = value
+            input_data[col] = str(val)
 
 
 
-    # Prediction
+    # Fill numeric columns
+
+    numeric_values = {
+
+        "Number_of_vehicles_involved": 1,
+
+        "Number_of_casualties": 1
+
+    }
+
+
+    for col, val in numeric_values.items():
+
+        if col in input_data.columns:
+            input_data[col] = val
+
+
+
+    # Ensure numeric columns are numeric
+
+    for col in input_data.columns:
+
+        if col not in categorical_values:
+
+            input_data[col] = pd.to_numeric(
+                input_data[col],
+                errors="coerce"
+            )
+
+
 
     prediction = model.predict(
         input_data
