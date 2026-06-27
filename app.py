@@ -3,15 +3,20 @@ import pandas as pd
 import pickle
 
 
-# Load model and encoder
+# Load files
 
 model = pickle.load(
-    open("accident_model (1).pkl", "rb")
+    open("accident_model.pkl", "rb")
 )
 
 encoder = pickle.load(
-    open("target_encoder (1).pkl", "rb")
+    open("target_encoder.pkl", "rb")
 )
+
+features = pickle.load(
+    open("features.pkl", "rb")
+)
+
 
 
 # Page config
@@ -28,14 +33,15 @@ st.subheader("Traffic Accident Severity Prediction")
 
 
 st.write(
-    "Predict accident severity using XGBoost Machine Learning"
+    "Predict accident severity using XGBoost"
 )
 
 
 st.divider()
 
 
-# Input section
+
+# Inputs
 
 col1, col2 = st.columns(2)
 
@@ -45,6 +51,7 @@ with col1:
     age = st.selectbox(
         "Age Band of Driver",
         [
+            "Under 18",
             "18-30",
             "31-50",
             "Over 51"
@@ -61,7 +68,7 @@ with col1:
     )
 
 
-    driving_exp = st.selectbox(
+    experience = st.selectbox(
         "Driving Experience",
         [
             "Below 1yr",
@@ -76,9 +83,9 @@ with col1:
         "Vehicle Type",
         [
             "Automobile",
-            "Public (> 45 seats)",
             "Lorry",
-            "Motorcycle"
+            "Motorcycle",
+            "Public"
         ]
     )
 
@@ -91,7 +98,7 @@ with col2:
         "Weather Condition",
         [
             "Normal",
-            "Rainy",
+            "Raining",
             "Fog"
         ]
     )
@@ -111,8 +118,7 @@ with col2:
         "Light Condition",
         [
             "Daylight",
-            "Darkness - lights lit",
-            "Darkness - no lighting"
+            "Darkness"
         ]
     )
 
@@ -121,42 +127,66 @@ with col2:
         "Cause of Accident",
         [
             "Speeding",
-            "Driving carelessly",
             "Overtaking",
-            "No distancing",
+            "Driving carelessly",
             "Other"
         ]
     )
 
 
 
-# Prediction
+st.divider()
 
-if st.button("Predict Accident Severity"):
 
+
+if st.button("Predict Severity"):
+
+
+    # create dataframe with ALL training columns
 
     input_data = pd.DataFrame(
-        {
-
-        "Age_band_of_driver":[age],
-
-        "Driving_experience":[driving_exp],
-
-        "Drivers_gender":[gender],
-
-        "Type_of_vehicle":[vehicle],
-
-        "Weather_conditions":[weather],
-
-        "Road_surface_conditions":[road],
-
-        "Light_conditions":[light],
-
-        "Cause_of_accident":[cause]
-
-        }
+        0,
+        index=[0],
+        columns=features
     )
 
+
+    # fill user selected values
+
+    if "Age_band_of_driver" in features:
+        input_data["Age_band_of_driver"] = age
+
+
+    if "Drivers_gender" in features:
+        input_data["Drivers_gender"] = gender
+
+
+    if "Driving_experience" in features:
+        input_data["Driving_experience"] = experience
+
+
+    if "Type_of_vehicle" in features:
+        input_data["Type_of_vehicle"] = vehicle
+
+
+    if "Weather_conditions" in features:
+        input_data["Weather_conditions"] = weather
+
+
+    if "Road_surface_conditions" in features:
+        input_data["Road_surface_conditions"] = road
+
+
+    if "Light_conditions" in features:
+        input_data["Light_conditions"] = light
+
+
+    if "Cause_of_accident" in features:
+        input_data["Cause_of_accident"] = cause
+
+
+
+    # Prediction
 
     prediction = model.predict(
         input_data
@@ -169,5 +199,5 @@ if st.button("Predict Accident Severity"):
 
 
     st.success(
-        f"Predicted Severity: {result[0]}"
+        f"Predicted Accident Severity: {result[0]}"
     )
