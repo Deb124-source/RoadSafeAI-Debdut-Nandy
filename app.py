@@ -147,44 +147,82 @@ st.divider()
 if st.button("Predict Severity"):
 
 
-    # Create dataframe exactly like encoder training data
+    # Create dataframe with ALL encoder columns
 
     input_data = pd.DataFrame(
-        columns=encoder_features
+        0,
+        index=[0],
+        columns=encoder.feature_names_in_
     )
 
 
-    # create one row
+    # Fill available user inputs
 
-    input_data.loc[0] = 0
+    input_data["Age_band_of_driver"] = age
+
+    input_data["Drivers_gender"] = gender
+
+    input_data["Driving_experience"] = experience
+
+    input_data["Type_of_vehicle"] = vehicle
+
+    input_data["Weather_conditions"] = weather
+
+    input_data["Road_surface_conditions"] = road
+
+    input_data["Light_conditions"] = light
+
+    input_data["Cause_of_accident"] = cause
 
 
 
-    # Fill categorical values
+    # Give default categorical values for remaining columns
 
-    values = {
+    defaults = {
 
-        "Age_band_of_driver": age,
+        "Day_of_week":"Monday",
 
-        "Drivers_gender": gender,
+        "Educational_level":"Unknown",
 
-        "Driving_experience": experience,
+        "Vehicle_driver_relation":"Owner",
 
-        "Type_of_vehicle": vehicle,
+        "Owner_of_vehicle":"Owner",
 
-        "Weather_conditions": weather,
+        "Service_year_of_vehicle":"Unknown",
 
-        "Road_surface_conditions": road,
+        "Defect_of_vehicle":"No defect",
 
-        "Light_conditions": light,
+        "Area_accident_occured":"Other",
 
-        "Cause_of_accident": cause
+        "Lanes_or_Medians":"Two-way",
+
+        "Road_allignment":"Straight",
+
+        "Types_of_Junction":"No junction",
+
+        "Road_surface_type":"Asphalt",
+
+        "Type_of_collision":"Other",
+
+        "Vehicle_movement":"Going straight",
+
+        "Casualty_class":"Driver",
+
+        "Casualty_gender":"Male",
+
+        "Age_band_of_casualty":"18-30",
+
+        "Work_of_casuality":"Unknown",
+
+        "Fitness_of_casuality":"Normal",
+
+        "Pedestrian_movement":"Not pedestrian"
 
     }
 
 
 
-    for col, value in values.items():
+    for col,value in defaults.items():
 
         if col in input_data.columns:
 
@@ -202,22 +240,18 @@ if st.button("Predict Severity"):
     encoded_data = pd.DataFrame(
         encoded_data,
         columns=encoder.get_feature_names_out(
-            encoder_features
+            encoder.feature_names_in_
         )
     )
 
 
-
-    # Match XGBoost training columns
+    # Match XGBoost input
 
     final_input = encoded_data.reindex(
         columns=features,
         fill_value=0
     )
 
-
-
-    # Predict
 
     prediction = model.predict(
         final_input
