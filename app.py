@@ -142,16 +142,16 @@ st.divider()
 if st.button("Predict Severity"):
 
 
-    # create dataframe with ALL training columns
-
+    # Create dataframe with same columns as training
     input_data = pd.DataFrame(
-        0,
-        index=[0],
         columns=features
     )
 
+    # create one empty row
+    input_data.loc[0] = None
 
-    # fill user selected values
+
+    # Fill categorical values
 
     if "Age_band_of_driver" in features:
         input_data["Age_band_of_driver"] = age
@@ -183,6 +183,24 @@ if st.button("Predict Severity"):
 
     if "Cause_of_accident" in features:
         input_data["Cause_of_accident"] = cause
+
+
+
+    # Fill numerical columns if present
+
+    numeric_defaults = {
+
+        "Number_of_vehicles_involved":1,
+
+        "Number_of_casualties":1
+
+    }
+
+
+    for col,value in numeric_defaults.items():
+
+        if col in input_data.columns:
+            input_data[col] = value
 
 
 
