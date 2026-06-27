@@ -1,20 +1,20 @@
 import streamlit as st
 import pandas as pd
-import pickle
+import joblib
 
 
 # Load files
 
-model = pickle.load(
-    open("accident_model (1).pkl", "rb")
+model = joblib.load(
+    open("accident_model (2).pkl", "rb")
 )
 
-encoder = pickle.load(
-    open("target_encoder (1).pkl", "rb")
+encoder = joblib.load(
+    open("target_encoder (2).pkl", "rb")
 )
 
-features = pickle.load(
-    open("features (1).pkl", "rb")
+features = joblib.load(
+    open("features (2).pkl", "rb")
 )
 
 
