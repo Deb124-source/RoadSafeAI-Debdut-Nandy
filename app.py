@@ -3,20 +3,23 @@ import pandas as pd
 import joblib
 
 
-# Load files
+# Load saved files
 
 model = joblib.load(
-    open("accident_model (2).pkl", "rb")
+    "acc_model.pkl"
 )
 
 encoder = joblib.load(
-    open("target_encoder (2).pkl", "rb")
+    "model_encoder.pkl"
+)
+
+target_encoder = joblib.load(
+    "targeting_encoder.pkl"
 )
 
 features = joblib.load(
-    open("features (2).pkl", "rb")
+    "model_features.pkl"
 )
-
 
 
 # Page config
@@ -31,17 +34,15 @@ st.set_page_config(
 st.title("🚦 RoadSafe AI")
 st.subheader("Traffic Accident Severity Prediction")
 
-
 st.write(
-    "Predict accident severity using XGBoost"
+    "Predict accident severity using XGBoost Machine Learning"
 )
 
 
 st.divider()
 
 
-
-# Inputs
+# Input fields
 
 col1, col2 = st.columns(2)
 
@@ -141,88 +142,73 @@ st.divider()
 
 if st.button("Predict Severity"):
 
-    # create dataframe with correct columns
+
+    # Create raw input dataframe
+
     input_data = pd.DataFrame(
-        columns=features
+        {
+
+        "Age_band_of_driver":[age],
+
+        "Drivers_gender":[gender],
+
+        "Driving_experience":[experience],
+
+        "Type_of_vehicle":[vehicle],
+
+        "Weather_conditions":[weather],
+
+        "Road_surface_conditions":[road],
+
+        "Light_conditions":[light],
+
+        "Cause_of_accident":[cause]
+
+        }
     )
 
 
-    # add one row
-    input_data = pd.DataFrame(
-        [[0]*len(features)],
-        columns=features
-    )
 
+    # Encode categorical values
 
-    # Fill categorical values
-
-    categorical_values = {
-
-        "Age_band_of_driver": age,
-
-        "Drivers_gender": gender,
-
-        "Driving_experience": experience,
-
-        "Type_of_vehicle": vehicle,
-
-        "Weather_conditions": weather,
-
-        "Road_surface_conditions": road,
-
-        "Light_conditions": light,
-
-        "Cause_of_accident": cause
-
-    }
-
-
-    for col, val in categorical_values.items():
-
-        if col in input_data.columns:
-            input_data[col] = str(val)
-
-
-
-    # Fill numeric columns
-
-    numeric_values = {
-
-        "Number_of_vehicles_involved": 1,
-
-        "Number_of_casualties": 1
-
-    }
-
-
-    for col, val in numeric_values.items():
-
-        if col in input_data.columns:
-            input_data[col] = val
-
-
-
-    # Ensure numeric columns are numeric
-
-    for col in input_data.columns:
-
-        if col not in categorical_values:
-
-            input_data[col] = pd.to_numeric(
-                input_data[col],
-                errors="coerce"
-            )
-
-
-
-    prediction = model.predict(
+    encoded_data = encoder.transform(
         input_data
     )
 
 
-    result = encoder.inverse_transform(
+    encoded_data = pd.DataFrame(
+        encoded_data,
+        columns=encoder.get_feature_names_out()
+    )
+
+
+
+    # Combine with numeric defaults
+
+    final_input = encoded_data.copy()
+
+
+
+    # Match training columns exactly
+
+    final_input = final_input.reindex(
+        columns=features,
+        fill_value=0
+    )
+
+
+
+    # Prediction
+
+    prediction = model.predict(
+        final_input
+    )
+
+
+    result = target_encoder.inverse_transform(
         prediction
     )
+
 
 
     st.success(
