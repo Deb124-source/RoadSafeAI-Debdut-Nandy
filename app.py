@@ -21,6 +21,9 @@ features = joblib.load(
     "model_features.pkl"
 )
 
+encoder_features = encoder.feature_names_in_
+
+
 
 # Page config
 
@@ -35,14 +38,15 @@ st.title("🚦 RoadSafe AI")
 st.subheader("Traffic Accident Severity Prediction")
 
 st.write(
-    "Predict accident severity using XGBoost Machine Learning"
+    "Predict accident severity using XGBoost"
 )
 
 
 st.divider()
 
 
-# Input fields
+
+# Inputs
 
 col1, col2 = st.columns(2)
 
@@ -143,33 +147,52 @@ st.divider()
 if st.button("Predict Severity"):
 
 
-    # Create raw input dataframe
+    # Create dataframe exactly like encoder training data
 
     input_data = pd.DataFrame(
-        {
-
-        "Age_band_of_driver":[age],
-
-        "Drivers_gender":[gender],
-
-        "Driving_experience":[experience],
-
-        "Type_of_vehicle":[vehicle],
-
-        "Weather_conditions":[weather],
-
-        "Road_surface_conditions":[road],
-
-        "Light_conditions":[light],
-
-        "Cause_of_accident":[cause]
-
-        }
+        columns=encoder_features
     )
 
 
+    # create one row
 
-    # Encode categorical values
+    input_data.loc[0] = 0
+
+
+
+    # Fill categorical values
+
+    values = {
+
+        "Age_band_of_driver": age,
+
+        "Drivers_gender": gender,
+
+        "Driving_experience": experience,
+
+        "Type_of_vehicle": vehicle,
+
+        "Weather_conditions": weather,
+
+        "Road_surface_conditions": road,
+
+        "Light_conditions": light,
+
+        "Cause_of_accident": cause
+
+    }
+
+
+
+    for col, value in values.items():
+
+        if col in input_data.columns:
+
+            input_data[col] = value
+
+
+
+    # Encode
 
     encoded_data = encoder.transform(
         input_data
@@ -178,27 +201,23 @@ if st.button("Predict Severity"):
 
     encoded_data = pd.DataFrame(
         encoded_data,
-        columns=encoder.get_feature_names_out()
+        columns=encoder.get_feature_names_out(
+            encoder_features
+        )
     )
 
 
 
-    # Combine with numeric defaults
+    # Match XGBoost training columns
 
-    final_input = encoded_data.copy()
-
-
-
-    # Match training columns exactly
-
-    final_input = final_input.reindex(
+    final_input = encoded_data.reindex(
         columns=features,
         fill_value=0
     )
 
 
 
-    # Prediction
+    # Predict
 
     prediction = model.predict(
         final_input
@@ -208,7 +227,6 @@ if st.button("Predict Severity"):
     result = target_encoder.inverse_transform(
         prediction
     )
-
 
 
     st.success(
